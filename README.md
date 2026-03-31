@@ -54,13 +54,13 @@ For `v1.0.0`, add both the starter and the Paho adapter explicitly:
 
 ```xml
 <dependency>
-    <groupId>io.github.your-org</groupId>
+    <groupId>io.github.mqttplus</groupId>
     <artifactId>mqtt-plus-spring-boot-starter</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 
 <dependency>
-    <groupId>io.github.your-org</groupId>
+    <groupId>io.github.mqttplus</groupId>
     <artifactId>mqtt-plus-paho</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
@@ -223,13 +223,13 @@ public void onStatus(DroneStatusEvent event) {
 
 ```xml
 <dependency>
-    <groupId>io.github.your-org</groupId>
+    <groupId>io.github.mqttplus</groupId>
     <artifactId>mqtt-plus-spring-boot-starter</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 
 <dependency>
-    <groupId>io.github.your-org</groupId>
+    <groupId>io.github.mqttplus</groupId>
     <artifactId>mqtt-plus-paho</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
