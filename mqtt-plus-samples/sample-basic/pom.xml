@@ -13,6 +13,11 @@
     <name>sample-basic</name>
     <dependencies>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <version>${spring.boot.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.github.mqttplus</groupId>
             <artifactId>mqtt-plus-spring-boot-starter</artifactId>
             <version>${project.version}</version>

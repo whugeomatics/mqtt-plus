@@ -1,0 +1,10 @@
+mqtt-plus:
+  brokers:
+    publicBroker:
+      host: 127.0.0.1
+      port: 1883
+      clientId: sample-multi-public
+    privateBroker:
+      host: 127.0.0.1
+      port: 1884
+      clientId: sample-multi-private

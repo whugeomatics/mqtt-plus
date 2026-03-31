@@ -1,0 +1,6 @@
+mqtt-plus:
+  brokers:
+    primary:
+      host: 127.0.0.1
+      port: 1883
+      clientId: sample-basic-client
