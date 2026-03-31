@@ -77,5 +77,9 @@ class DefaultMqttClientAdapterRegistryTest {
         public boolean supportsManualAck() {
             return false;
         }
+
+        @Override
+        public void addConnectionListener(MqttConnectionListener listener) {
+        }
     }
 }

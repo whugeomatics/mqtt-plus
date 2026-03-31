@@ -43,6 +43,7 @@ public final class PahoMqttClientAdapter implements MqttClientAdapter {
         this.mqttClient.setCallback(new CallbackHandler());
     }
 
+    @Override
     public void addConnectionListener(MqttConnectionListener listener) {
         this.connectionListeners.add(listener);
     }

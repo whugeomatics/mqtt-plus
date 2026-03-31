@@ -2,6 +2,7 @@ package io.github.mqttplus.core;
 
 import io.github.mqttplus.core.adapter.DefaultMqttClientAdapterRegistry;
 import io.github.mqttplus.core.adapter.MqttClientAdapter;
+import io.github.mqttplus.core.adapter.MqttConnectionListener;
 import io.github.mqttplus.core.model.MqttBrokerDefinition;
 import io.github.mqttplus.core.model.ThreadPoolConfig;
 import org.junit.jupiter.api.Test;
@@ -91,6 +92,10 @@ class DefaultMqttTemplateTest {
         @Override
         public boolean supportsManualAck() {
             return false;
+        }
+
+        @Override
+        public void addConnectionListener(MqttConnectionListener listener) {
         }
     }
 }

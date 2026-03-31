@@ -2,6 +2,7 @@ package io.github.mqttplus.core.subscription;
 
 import io.github.mqttplus.core.adapter.DefaultMqttClientAdapterRegistry;
 import io.github.mqttplus.core.adapter.MqttClientAdapter;
+import io.github.mqttplus.core.adapter.MqttConnectionListener;
 import io.github.mqttplus.core.model.MqttBrokerDefinition;
 import io.github.mqttplus.core.model.MqttListenerDefinition;
 import io.github.mqttplus.core.model.ThreadPoolConfig;
@@ -90,6 +91,10 @@ class MqttSubscriptionReconcilerTest {
         @Override
         public boolean supportsManualAck() {
             return false;
+        }
+
+        @Override
+        public void addConnectionListener(MqttConnectionListener listener) {
         }
     }
 }

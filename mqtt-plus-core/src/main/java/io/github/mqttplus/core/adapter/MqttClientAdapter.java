@@ -23,4 +23,6 @@ public interface MqttClientAdapter {
     CompletableFuture<Void> publishAsync(String topic, Object payload);
 
     boolean supportsManualAck();
+
+    void addConnectionListener(MqttConnectionListener listener);
 }

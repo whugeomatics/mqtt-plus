@@ -1,6 +1,7 @@
 package io.github.mqttplus.spring.event;
 
 import io.github.mqttplus.core.subscription.MqttSubscriptionManager;
+import org.springframework.context.event.EventListener;
 
 public final class MqttSubscriptionRefreshEventListener {
 
@@ -10,6 +11,7 @@ public final class MqttSubscriptionRefreshEventListener {
         this.subscriptionManager = subscriptionManager;
     }
 
+    @EventListener
     public void onApplicationEvent(MqttSubscriptionRefreshEvent event) {
         if (event.getAction() == MqttSubscriptionRefreshEvent.Action.SUBSCRIBE) {
             subscriptionManager.addSubscription(event.getBrokerId(), event.getTopic(), event.getQos());
