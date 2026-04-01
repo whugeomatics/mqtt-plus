@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mqttplus.core.adapter.MqttClientAdapterRegistry;
 import io.github.mqttplus.core.converter.PayloadConverter;
 import io.github.mqttplus.core.router.MqttMessageRouter;
-import io.github.mqttplus.paho.PahoMqttClientAdapterFactory;
 import io.github.mqttplus.starter.properties.MqttPlusProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -19,11 +18,10 @@ class MqttPlusAutoConfigurationIT {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(MqttPlusAutoConfiguration.class))
-            .withBean(ObjectMapper.class, ObjectMapper::new)
-            .withBean(PahoMqttClientAdapterFactory.class, PahoMqttClientAdapterFactory::new);
+            .withBean(ObjectMapper.class, ObjectMapper::new);
 
     @Test
-    void shouldBindBrokerPropertiesAndRegisterAdapter() {
+    void shouldAutoRegisterPahoFactoryAndBindBrokerProperties() {
         contextRunner
                 .withPropertyValues(
                         "mqtt-plus.brokers.primary.host=127.0.0.1",
@@ -34,6 +32,7 @@ class MqttPlusAutoConfigurationIT {
                     assertThat(context).hasSingleBean(MqttPlusProperties.class);
                     assertThat(context).hasSingleBean(MqttMessageRouter.class);
                     assertThat(context).hasSingleBean(MqttClientAdapterRegistry.class);
+                    assertThat(context).hasSingleBean(io.github.mqttplus.core.adapter.MqttClientAdapterFactory.class);
 
                     MqttPlusProperties properties = context.getBean(MqttPlusProperties.class);
                     assertThat(properties.getBrokers()).containsKey("primary");
@@ -50,7 +49,6 @@ class MqttPlusAutoConfigurationIT {
         new ApplicationContextRunner()
                 .withClassLoader(new FilteredClassLoader("com.fasterxml.jackson.databind"))
                 .withConfiguration(AutoConfigurations.of(MqttPlusAutoConfiguration.class))
-                .withBean(PahoMqttClientAdapterFactory.class, PahoMqttClientAdapterFactory::new)
                 .withPropertyValues(
                         "mqtt-plus.brokers.primary.host=127.0.0.1",
                         "mqtt-plus.brokers.primary.client-id=runner-primary")
@@ -63,8 +61,25 @@ class MqttPlusAutoConfigurationIT {
     }
 
     @Test
+    void shouldFailFastWhenPahoFactoryIsMissingFromClasspath() {
+        new ApplicationContextRunner()
+                .withClassLoader(new FilteredClassLoader("io.github.mqttplus.paho"))
+                .withConfiguration(AutoConfigurations.of(MqttPlusAutoConfiguration.class))
+                .withBean(ObjectMapper.class, ObjectMapper::new)
+                .withPropertyValues(
+                        "mqtt-plus.brokers.primary.host=127.0.0.1",
+                        "mqtt-plus.brokers.primary.client-id=runner-primary")
+                .run(context -> {
+                    assertThat(context.getStartupFailure()).isNotNull();
+                    assertThat(context.getStartupFailure())
+                            .hasMessageContaining("No MQTT adapter factory registered for version: 3.1.1");
+                });
+    }
+
+    @Test
     void shouldFailFastWhenAdapterFactoryIsMissing() {
         new ApplicationContextRunner()
+                .withClassLoader(new FilteredClassLoader("io.github.mqttplus.paho"))
                 .withConfiguration(AutoConfigurations.of(MqttPlusAutoConfiguration.class))
                 .withBean(ObjectMapper.class, ObjectMapper::new)
                 .withPropertyValues(

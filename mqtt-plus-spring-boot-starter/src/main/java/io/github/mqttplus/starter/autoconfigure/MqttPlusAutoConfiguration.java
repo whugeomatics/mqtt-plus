@@ -26,6 +26,7 @@ import io.github.mqttplus.starter.properties.MqttPlusProperties;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -40,6 +41,7 @@ public class MqttPlusAutoConfiguration {
 
     private static final String OBJECT_MAPPER_CLASS_NAME = "com.fasterxml.jackson.databind.ObjectMapper";
     private static final String JACKSON_CONVERTER_CLASS_NAME = "io.github.mqttplus.starter.converter.JacksonPayloadConverter";
+    private static final String PAHO_FACTORY_CLASS_NAME = "io.github.mqttplus.paho.PahoMqttClientAdapterFactory";
 
     @Bean
     @ConditionalOnMissingBean
@@ -137,6 +139,13 @@ public class MqttPlusAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnClass(name = PAHO_FACTORY_CLASS_NAME)
+    @ConditionalOnMissingBean(name = "pahoMqttClientAdapterFactory")
+    public MqttClientAdapterFactory pahoMqttClientAdapterFactory() {
+        return instantiatePahoFactory();
+    }
+
+    @Bean
     @ConditionalOnMissingBean
     public MqttClientAdapterFactoryRegistry mqttClientAdapterFactoryRegistry(List<MqttClientAdapterFactory> factories) {
         return new MqttClientAdapterFactoryRegistry(factories);
@@ -158,7 +167,7 @@ public class MqttPlusAutoConfiguration {
 
     private void addJacksonPayloadConverterIfAvailable(List<PayloadConverter> converters, ListableBeanFactory beanFactory) {
         try {
-            ClassLoader classLoader = MqttPlusAutoConfiguration.class.getClassLoader();
+            ClassLoader classLoader = resolveApplicationClassLoader();
             Class<?> objectMapperClass = Class.forName(OBJECT_MAPPER_CLASS_NAME, false, classLoader);
             Object objectMapper = beanFactory.getBeanProvider(objectMapperClass).getIfAvailable();
             if (objectMapper == null) {
@@ -173,5 +182,22 @@ public class MqttPlusAutoConfiguration {
         } catch (ReflectiveOperationException ex) {
             throw new IllegalStateException("Failed to initialize optional Jackson payload converter", ex);
         }
+    }
+
+    private MqttClientAdapterFactory instantiatePahoFactory() {
+        try {
+            Class<?> factoryClass = Class.forName(PAHO_FACTORY_CLASS_NAME, false, resolveApplicationClassLoader());
+            return (MqttClientAdapterFactory) factoryClass.getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException ex) {
+            throw new IllegalStateException("Failed to initialize optional Paho MQTT adapter factory", ex);
+        }
+    }
+
+    private ClassLoader resolveApplicationClassLoader() {
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        if (contextClassLoader != null) {
+            return contextClassLoader;
+        }
+        return MqttPlusAutoConfiguration.class.getClassLoader();
     }
 }
