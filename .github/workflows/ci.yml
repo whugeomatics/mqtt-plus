@@ -25,5 +25,8 @@ jobs:
       - name: Run unit tests
         run: mvn -B test
 
+      - name: Run Paho integration tests
+        run: mvn -B -pl mqtt-plus-paho -am -Pintegration-test verify
+
       - name: Compile sample applications
         run: mvn -B -pl mqtt-plus-samples/sample-basic,mqtt-plus-samples/sample-multi-broker,mqtt-plus-samples/sample-dynamic-subscription -am -DskipTests compile
