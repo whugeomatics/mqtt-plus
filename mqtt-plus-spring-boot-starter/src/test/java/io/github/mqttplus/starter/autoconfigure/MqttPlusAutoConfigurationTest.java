@@ -18,8 +18,6 @@ class MqttPlusAutoConfigurationTest {
     void shouldCreateCoreStarterBeans() {
         MqttPlusAutoConfiguration configuration = new MqttPlusAutoConfiguration();
         ObjectProvider<ObjectMapper> objectMapperProvider = new SimpleObjectProvider<>(new ObjectMapper());
-
-        assertNotNull(configuration.mqttPlusProperties());
         assertNotNull(configuration.mqttClientAdapterRegistry());
         assertNotNull(configuration.mqttListenerRegistry());
         assertNotNull(configuration.mqttSubscriptionManager());

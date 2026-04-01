@@ -29,19 +29,15 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @AutoConfiguration
+@EnableConfigurationProperties(MqttPlusProperties.class)
 public class MqttPlusAutoConfiguration {
-
-    @Bean
-    @ConditionalOnMissingBean
-    public MqttPlusProperties mqttPlusProperties() {
-        return new MqttPlusProperties();
-    }
 
     @Bean
     @ConditionalOnMissingBean
