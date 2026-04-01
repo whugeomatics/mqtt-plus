@@ -6,14 +6,13 @@
 
     <groupId>io.github.mqttplus</groupId>
     <artifactId>mqtt-plus-parent</artifactId>
-    <version>${revision}</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>mqtt-plus-parent</name>
     <description>Standalone MQTT framework with annotation-driven listeners and multi-broker support.</description>
 
     <properties>
-        <revision>1.0.0-SNAPSHOT</revision>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,7 +24,6 @@
         <junit.version>5.10.1</junit.version>
         <mockito.version>5.8.0</mockito.version>
         <testcontainers.version>1.19.3</testcontainers.version>
-        <flatten.plugin.version>1.5.0</flatten.plugin.version>
         <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <maven.failsafe.plugin.version>3.2.5</maven.failsafe.plugin.version>
@@ -117,31 +115,6 @@
                     <configuration>
                         <useModulePath>false</useModulePath>
                     </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>flatten-maven-plugin</artifactId>
-                    <version>${flatten.plugin.version}</version>
-                    <configuration>
-                        <updatePomFile>true</updatePomFile>
-                        <flattenMode>resolveCiFriendliesOnly</flattenMode>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>flatten</id>
-                            <phase>process-resources</phase>
-                            <goals>
-                                <goal>flatten</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <id>flatten.clean</id>
-                            <phase>clean</phase>
-                            <goals>
-                                <goal>clean</goal>
-                            </goals>
-                        </execution>
-                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
