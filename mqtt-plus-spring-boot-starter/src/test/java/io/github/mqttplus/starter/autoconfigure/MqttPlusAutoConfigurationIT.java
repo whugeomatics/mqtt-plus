@@ -1,8 +1,13 @@
 package io.github.mqttplus.starter.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.mqttplus.core.adapter.MqttClientAdapter;
+import io.github.mqttplus.core.adapter.MqttClientAdapterFactory;
 import io.github.mqttplus.core.adapter.MqttClientAdapterRegistry;
+import io.github.mqttplus.core.adapter.MqttConnectionListener;
+import io.github.mqttplus.core.adapter.MqttInboundMessageSink;
 import io.github.mqttplus.core.converter.PayloadConverter;
+import io.github.mqttplus.core.model.MqttBrokerDefinition;
 import io.github.mqttplus.core.router.MqttMessageRouter;
 import io.github.mqttplus.starter.properties.MqttPlusProperties;
 import org.junit.jupiter.api.Test;
@@ -11,6 +16,7 @@ import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,8 +27,19 @@ class MqttPlusAutoConfigurationIT {
             .withBean(ObjectMapper.class, ObjectMapper::new);
 
     @Test
-    void shouldAutoRegisterPahoFactoryAndBindBrokerProperties() {
+    void shouldAutoRegisterPahoFactoryBeanWhenPahoIsOnClasspath() {
+        contextRunner.run(context -> {
+            assertThat(context).hasSingleBean(MqttClientAdapterFactory.class);
+            assertThat(context.getBean(MqttClientAdapterFactory.class).getClass().getName())
+                    .isEqualTo("io.github.mqttplus.paho.PahoMqttClientAdapterFactory");
+        });
+    }
+
+    @Test
+    void shouldBindBrokerPropertiesAndRegisterAdapterWithCustomFactory() {
         contextRunner
+                .withClassLoader(new FilteredClassLoader("io.github.mqttplus.paho"))
+                .withBean(MqttClientAdapterFactory.class, StubFactory::new)
                 .withPropertyValues(
                         "mqtt-plus.brokers.primary.host=127.0.0.1",
                         "mqtt-plus.brokers.primary.port=1883",
@@ -32,7 +49,6 @@ class MqttPlusAutoConfigurationIT {
                     assertThat(context).hasSingleBean(MqttPlusProperties.class);
                     assertThat(context).hasSingleBean(MqttMessageRouter.class);
                     assertThat(context).hasSingleBean(MqttClientAdapterRegistry.class);
-                    assertThat(context).hasSingleBean(io.github.mqttplus.core.adapter.MqttClientAdapterFactory.class);
 
                     MqttPlusProperties properties = context.getBean(MqttPlusProperties.class);
                     assertThat(properties.getBrokers()).containsKey("primary");
@@ -41,6 +57,7 @@ class MqttPlusAutoConfigurationIT {
 
                     MqttClientAdapterRegistry registry = context.getBean(MqttClientAdapterRegistry.class);
                     assertThat(registry.find("primary")).isPresent();
+                    assertThat(((StubAdapter) registry.find("primary").orElseThrow()).connected).isTrue();
                 });
     }
 
@@ -49,12 +66,8 @@ class MqttPlusAutoConfigurationIT {
         new ApplicationContextRunner()
                 .withClassLoader(new FilteredClassLoader("com.fasterxml.jackson.databind"))
                 .withConfiguration(AutoConfigurations.of(MqttPlusAutoConfiguration.class))
-                .withPropertyValues(
-                        "mqtt-plus.brokers.primary.host=127.0.0.1",
-                        "mqtt-plus.brokers.primary.client-id=runner-primary")
                 .run(context -> {
                     assertThat(context).hasNotFailed();
-                    assertThat(context).hasSingleBean(MqttClientAdapterRegistry.class);
                     List<PayloadConverter> converters = context.getBean("mqttPlusPayloadConverters", List.class);
                     assertThat(converters).hasSize(2);
                 });
@@ -91,5 +104,72 @@ class MqttPlusAutoConfigurationIT {
                     assertThat(context.getStartupFailure())
                             .hasMessageContaining("No MQTT adapter factory registered for version: 5.0");
                 });
+    }
+
+    private static final class StubFactory implements MqttClientAdapterFactory {
+        @Override
+        public String supportedVersion() {
+            return "3.1.1";
+        }
+
+        @Override
+        public MqttClientAdapter create(MqttBrokerDefinition brokerDefinition, MqttInboundMessageSink inboundMessageSink) {
+            return new StubAdapter(brokerDefinition);
+        }
+    }
+
+    private static final class StubAdapter implements MqttClientAdapter {
+        private final MqttBrokerDefinition brokerDefinition;
+        private boolean connected;
+
+        private StubAdapter(MqttBrokerDefinition brokerDefinition) {
+            this.brokerDefinition = brokerDefinition;
+        }
+
+        @Override
+        public String getBrokerId() {
+            return brokerDefinition.getBrokerId();
+        }
+
+        @Override
+        public MqttBrokerDefinition getBrokerDefinition() {
+            return brokerDefinition;
+        }
+
+        @Override
+        public void connect() {
+            connected = true;
+        }
+
+        @Override
+        public void disconnect() {
+            connected = false;
+        }
+
+        @Override
+        public void subscribe(String topic, int qos) {
+        }
+
+        @Override
+        public void unsubscribe(String topic) {
+        }
+
+        @Override
+        public void publish(String topic, Object payload) {
+        }
+
+        @Override
+        public CompletableFuture<Void> publishAsync(String topic, Object payload) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        @Override
+        public boolean supportsManualAck() {
+            return false;
+        }
+
+        @Override
+        public void addConnectionListener(MqttConnectionListener listener) {
+        }
     }
 }

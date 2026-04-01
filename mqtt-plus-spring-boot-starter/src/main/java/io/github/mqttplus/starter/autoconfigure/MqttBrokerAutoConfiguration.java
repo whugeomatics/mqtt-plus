@@ -25,6 +25,12 @@ public class MqttBrokerAutoConfiguration {
             MqttClientAdapter adapter = factory.create(definition, inboundMessageSink);
             adapter.addConnectionListener(connectionListener);
             adapterRegistry.register(adapter);
+            try {
+                adapter.connect();
+            } catch (RuntimeException ex) {
+                adapterRegistry.remove(brokerId);
+                throw ex;
+            }
         }
     }
 }
