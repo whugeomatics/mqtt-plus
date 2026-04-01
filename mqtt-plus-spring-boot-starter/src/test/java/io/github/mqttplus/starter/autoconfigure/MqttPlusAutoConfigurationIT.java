@@ -156,10 +156,20 @@ class MqttPlusAutoConfigurationIT {
 
         @Override
         public void publish(String topic, Object payload) {
+            publish(topic, payload, 0, false);
+        }
+
+        @Override
+        public void publish(String topic, Object payload, int qos, boolean retained) {
         }
 
         @Override
         public CompletableFuture<Void> publishAsync(String topic, Object payload) {
+            return publishAsync(topic, payload, 0, false);
+        }
+
+        @Override
+        public CompletableFuture<Void> publishAsync(String topic, Object payload, int qos, boolean retained) {
             return CompletableFuture.completedFuture(null);
         }
 

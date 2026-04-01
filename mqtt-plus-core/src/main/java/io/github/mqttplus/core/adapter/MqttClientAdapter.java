@@ -20,7 +20,11 @@ public interface MqttClientAdapter {
 
     void publish(String topic, Object payload);
 
+    void publish(String topic, Object payload, int qos, boolean retained);
+
     CompletableFuture<Void> publishAsync(String topic, Object payload);
+
+    CompletableFuture<Void> publishAsync(String topic, Object payload, int qos, boolean retained);
 
     boolean supportsManualAck();
 

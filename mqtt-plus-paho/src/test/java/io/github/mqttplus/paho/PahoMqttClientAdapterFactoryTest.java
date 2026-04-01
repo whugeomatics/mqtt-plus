@@ -123,4 +123,23 @@ class PahoMqttClientAdapterFactoryTest {
         assertArrayEquals("hello".getBytes(StandardCharsets.UTF_8), inboundPayload.get());
         assertEquals(1, inboundQos.get());
     }
+
+    @Test
+    void shouldApplyQosAndRetainedFlagsWhenPublishing() throws Exception {
+        MqttBrokerDefinition definition = MqttBrokerDefinition.builder()
+                .brokerId("publish")
+                .host("127.0.0.1")
+                .clientId("publish-test")
+                .inboundThreadPool(ThreadPoolConfig.builder().coreSize(1).build())
+                .build();
+
+        PahoMqttClientAdapter adapter = new PahoMqttClientAdapter(definition, (brokerId, topic, payload, headers) -> {
+        });
+
+        MqttMessage message = adapter.toMessageForTesting("hello", 1, true);
+
+        assertArrayEquals("hello".getBytes(StandardCharsets.UTF_8), message.getPayload());
+        assertEquals(1, message.getQos());
+        assertTrue(message.isRetained());
+    }
 }

@@ -10,7 +10,9 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DefaultMqttTemplateTest {
 
@@ -25,6 +27,23 @@ class DefaultMqttTemplateTest {
 
         assertEquals("devices/1/status", adapter.lastTopic);
         assertEquals("ok", adapter.lastPayload);
+        assertEquals(0, adapter.lastQos);
+        assertFalse(adapter.lastRetained);
+    }
+
+    @Test
+    void shouldDelegatePublishOptionsToResolvedAdapter() {
+        DefaultMqttClientAdapterRegistry registry = new DefaultMqttClientAdapterRegistry();
+        RecordingAdapter adapter = new RecordingAdapter("primary");
+        registry.register(adapter);
+        DefaultMqttTemplate template = new DefaultMqttTemplate(registry);
+
+        template.publish("primary", "devices/1/status", "ok", 1, true);
+
+        assertEquals("devices/1/status", adapter.lastTopic);
+        assertEquals("ok", adapter.lastPayload);
+        assertEquals(1, adapter.lastQos);
+        assertTrue(adapter.lastRetained);
     }
 
     @Test
@@ -41,6 +60,8 @@ class DefaultMqttTemplateTest {
         private final MqttBrokerDefinition definition;
         private String lastTopic;
         private Object lastPayload;
+        private int lastQos;
+        private boolean lastRetained;
 
         RecordingAdapter(String brokerId) {
             this.definition = MqttBrokerDefinition.builder()
@@ -79,13 +100,25 @@ class DefaultMqttTemplateTest {
 
         @Override
         public void publish(String topic, Object payload) {
+            publish(topic, payload, 0, false);
+        }
+
+        @Override
+        public void publish(String topic, Object payload, int qos, boolean retained) {
             this.lastTopic = topic;
             this.lastPayload = payload;
+            this.lastQos = qos;
+            this.lastRetained = retained;
         }
 
         @Override
         public CompletableFuture<Void> publishAsync(String topic, Object payload) {
-            publish(topic, payload);
+            return publishAsync(topic, payload, 0, false);
+        }
+
+        @Override
+        public CompletableFuture<Void> publishAsync(String topic, Object payload, int qos, boolean retained) {
+            publish(topic, payload, qos, retained);
             return CompletableFuture.completedFuture(null);
         }
 

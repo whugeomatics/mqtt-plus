@@ -56,6 +56,10 @@ public final class PahoMqttClientAdapter implements MqttClientAdapter {
         return connectOptions;
     }
 
+    MqttMessage toMessageForTesting(Object payload, int qos, boolean retained) {
+        return toMessage(payload, qos, retained);
+    }
+
     void handleConnectComplete(boolean reconnect, String connectedServerUri) {
         notifyConnected();
     }
@@ -121,8 +125,13 @@ public final class PahoMqttClientAdapter implements MqttClientAdapter {
 
     @Override
     public void publish(String topic, Object payload) {
+        publish(topic, payload, 0, false);
+    }
+
+    @Override
+    public void publish(String topic, Object payload, int qos, boolean retained) {
         try {
-            mqttClient.publish(topic, toMessage(payload));
+            mqttClient.publish(topic, toMessage(payload, qos, retained));
         } catch (MqttException ex) {
             throw new IllegalStateException("Failed to publish topic: " + topic, ex);
         }
@@ -130,7 +139,12 @@ public final class PahoMqttClientAdapter implements MqttClientAdapter {
 
     @Override
     public CompletableFuture<Void> publishAsync(String topic, Object payload) {
-        return CompletableFuture.runAsync(() -> publish(topic, payload));
+        return publishAsync(topic, payload, 0, false);
+    }
+
+    @Override
+    public CompletableFuture<Void> publishAsync(String topic, Object payload, int qos, boolean retained) {
+        return CompletableFuture.runAsync(() -> publish(topic, payload, qos, retained));
     }
 
     @Override
@@ -156,14 +170,17 @@ public final class PahoMqttClientAdapter implements MqttClientAdapter {
         return options;
     }
 
-    private static MqttMessage toMessage(Object payload) {
+    private static MqttMessage toMessage(Object payload, int qos, boolean retained) {
         byte[] body;
         if (payload instanceof byte[] bytes) {
             body = bytes;
         } else {
             body = String.valueOf(payload).getBytes(StandardCharsets.UTF_8);
         }
-        return new MqttMessage(body);
+        MqttMessage message = new MqttMessage(body);
+        message.setQos(qos);
+        message.setRetained(retained);
+        return message;
     }
 
     private void notifyConnected() {
