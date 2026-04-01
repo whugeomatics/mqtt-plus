@@ -130,6 +130,9 @@ class PahoMqttClientAdapterIT {
             assertEquals(1, receivedMessage.get().getQos());
             assertTrue(receivedMessage.get().isRetained());
             assertArrayEquals("payload".getBytes(StandardCharsets.UTF_8), receivedMessage.get().getPayload());
+            if (subscriber.isConnected()) {
+                subscriber.disconnect();
+            }
         }
     }
 
@@ -150,6 +153,9 @@ class PahoMqttClientAdapterIT {
             message.setQos(qos);
             message.setRetained(retained);
             publisher.publish(topic, message);
+            if (publisher.isConnected()) {
+                publisher.disconnect();
+            }
         }
     }
 
