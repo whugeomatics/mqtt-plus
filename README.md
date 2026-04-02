@@ -57,13 +57,13 @@ For `v1.0.0`, add both the starter and the Paho adapter explicitly:
 <dependency>
     <groupId>io.github.mqttplus</groupId>
     <artifactId>mqtt-plus-spring-boot-starter</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.mqttplus</groupId>
     <artifactId>mqtt-plus-paho</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -261,13 +261,13 @@ public void onStatus(String payload) {
 <dependency>
     <groupId>io.github.mqttplus</groupId>
     <artifactId>mqtt-plus-spring-boot-starter</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 </dependency>
 
 <dependency>
     <groupId>io.github.mqttplus</groupId>
     <artifactId>mqtt-plus-paho</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
