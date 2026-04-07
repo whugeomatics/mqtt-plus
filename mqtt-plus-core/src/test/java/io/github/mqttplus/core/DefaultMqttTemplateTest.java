@@ -183,7 +183,7 @@ class DefaultMqttTemplateTest {
     static final class RecordingAdapter implements MqttClientAdapter {
         private final MqttBrokerDefinition definition;
         private String lastTopic;
-        private Object lastPayload;
+        private byte[] lastPayload;
         private int lastQos;
         private boolean lastRetained;
 
@@ -223,12 +223,12 @@ class DefaultMqttTemplateTest {
         }
 
         @Override
-        public void publish(String topic, Object payload) {
+        public void publish(String topic, byte[] payload) {
             publish(topic, payload, 0, false);
         }
 
         @Override
-        public void publish(String topic, Object payload, int qos, boolean retained) {
+        public void publish(String topic, byte[] payload, int qos, boolean retained) {
             this.lastTopic = topic;
             this.lastPayload = payload;
             this.lastQos = qos;
@@ -236,12 +236,12 @@ class DefaultMqttTemplateTest {
         }
 
         @Override
-        public CompletableFuture<Void> publishAsync(String topic, Object payload) {
+        public CompletableFuture<Void> publishAsync(String topic, byte[] payload) {
             return publishAsync(topic, payload, 0, false);
         }
 
         @Override
-        public CompletableFuture<Void> publishAsync(String topic, Object payload, int qos, boolean retained) {
+        public CompletableFuture<Void> publishAsync(String topic, byte[] payload, int qos, boolean retained) {
             publish(topic, payload, qos, retained);
             return CompletableFuture.completedFuture(null);
         }

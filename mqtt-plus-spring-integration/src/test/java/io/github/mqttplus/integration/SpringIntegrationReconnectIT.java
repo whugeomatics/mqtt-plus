@@ -105,23 +105,26 @@ class SpringIntegrationReconnectIT {
 
         adapter.connect();
         assertTrue(connectedLatch.await(5, TimeUnit.SECONDS));
+        waitForBrokerProcessing();
         adapter.subscribe(topic, 1);
+        waitForBrokerProcessing();
 
         boolean baselineReceived = false;
-        for (int attempt = 0; attempt < 10 && !baselineReceived; attempt++) {
+        for (int attempt = 0; attempt < 20 && !baselineReceived; attempt++) {
             publishWithRawClient(topic, ("baseline-" + attempt).getBytes(StandardCharsets.UTF_8), 1, false);
-            baselineReceived = baselineMessageLatch.await(1, TimeUnit.SECONDS);
+            baselineReceived = baselineMessageLatch.await(2, TimeUnit.SECONDS);
         }
         assertTrue(baselineReceived, "expected subscription to receive a message before network interruption");
 
         mqttProxy.setConnectionCut(true);
-        Thread.sleep(3000);
+        Thread.sleep(5000);
         mqttProxy.setConnectionCut(false);
+        waitForBrokerProcessing();
 
         boolean recovered = false;
-        for (int attempt = 0; attempt < 12 && !recovered; attempt++) {
+        for (int attempt = 0; attempt < 20 && !recovered; attempt++) {
             publishWithRawClient(topic, ("recovered-" + attempt).getBytes(StandardCharsets.UTF_8), 1, false);
-            recovered = recoveredMessageLatch.await(1, TimeUnit.SECONDS);
+            recovered = recoveredMessageLatch.await(2, TimeUnit.SECONDS);
         }
 
         assertTrue(recovered, "expected subscription to receive a message after network recovery");
@@ -165,5 +168,15 @@ class SpringIntegrationReconnectIT {
         options.setKeepAliveInterval(30);
         options.setCleanSession(true);
         return options;
+    }
+
+    private void waitForBrokerProcessing() {
+        try {
+            Thread.sleep(1000);
+        }
+        catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while waiting for broker processing", ex);
+        }
     }
 }

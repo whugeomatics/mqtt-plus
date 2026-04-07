@@ -139,7 +139,7 @@ class PahoMqttClientAdapterFactoryTest {
         PahoMqttClientAdapter adapter = new PahoMqttClientAdapter(definition, (brokerId, topic, payload, headers) -> {
         });
 
-        MqttMessage message = adapter.toMessageForTesting("hello", 1, true);
+        MqttMessage message = adapter.toMessageForTesting("hello".getBytes(StandardCharsets.UTF_8), 1, true);
 
         assertArrayEquals("hello".getBytes(StandardCharsets.UTF_8), message.getPayload());
         assertEquals(1, message.getQos());

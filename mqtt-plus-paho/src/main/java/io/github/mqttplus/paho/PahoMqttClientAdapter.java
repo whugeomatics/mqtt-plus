@@ -13,7 +13,6 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +55,7 @@ public final class PahoMqttClientAdapter implements MqttClientAdapter {
         return connectOptions;
     }
 
-    MqttMessage toMessageForTesting(Object payload, int qos, boolean retained) {
+    MqttMessage toMessageForTesting(byte[] payload, int qos, boolean retained) {
         return toMessage(payload, qos, retained);
     }
 
@@ -87,7 +86,8 @@ public final class PahoMqttClientAdapter implements MqttClientAdapter {
     public void connect() {
         try {
             mqttClient.connect(connectOptions);
-        } catch (MqttException ex) {
+        }
+        catch (MqttException ex) {
             throw new IllegalStateException("Failed to connect broker: " + brokerDefinition.getBrokerId(), ex);
         }
     }
@@ -100,7 +100,8 @@ public final class PahoMqttClientAdapter implements MqttClientAdapter {
             }
             inboundExecutor.shutdown();
             notifyDisconnected();
-        } catch (MqttException ex) {
+        }
+        catch (MqttException ex) {
             throw new IllegalStateException("Failed to disconnect broker: " + brokerDefinition.getBrokerId(), ex);
         }
     }
@@ -109,7 +110,8 @@ public final class PahoMqttClientAdapter implements MqttClientAdapter {
     public void subscribe(String topic, int qos) {
         try {
             mqttClient.subscribe(topic, qos);
-        } catch (MqttException ex) {
+        }
+        catch (MqttException ex) {
             throw new IllegalStateException("Failed to subscribe topic: " + topic, ex);
         }
     }
@@ -118,32 +120,34 @@ public final class PahoMqttClientAdapter implements MqttClientAdapter {
     public void unsubscribe(String topic) {
         try {
             mqttClient.unsubscribe(topic);
-        } catch (MqttException ex) {
+        }
+        catch (MqttException ex) {
             throw new IllegalStateException("Failed to unsubscribe topic: " + topic, ex);
         }
     }
 
     @Override
-    public void publish(String topic, Object payload) {
+    public void publish(String topic, byte[] payload) {
         publish(topic, payload, 0, false);
     }
 
     @Override
-    public void publish(String topic, Object payload, int qos, boolean retained) {
+    public void publish(String topic, byte[] payload, int qos, boolean retained) {
         try {
             mqttClient.publish(topic, toMessage(payload, qos, retained));
-        } catch (MqttException ex) {
+        }
+        catch (MqttException ex) {
             throw new IllegalStateException("Failed to publish topic: " + topic, ex);
         }
     }
 
     @Override
-    public CompletableFuture<Void> publishAsync(String topic, Object payload) {
+    public CompletableFuture<Void> publishAsync(String topic, byte[] payload) {
         return publishAsync(topic, payload, 0, false);
     }
 
     @Override
-    public CompletableFuture<Void> publishAsync(String topic, Object payload, int qos, boolean retained) {
+    public CompletableFuture<Void> publishAsync(String topic, byte[] payload, int qos, boolean retained) {
         return CompletableFuture.runAsync(() -> publish(topic, payload, qos, retained));
     }
 
@@ -171,14 +175,11 @@ public final class PahoMqttClientAdapter implements MqttClientAdapter {
         return options;
     }
 
-    private static MqttMessage toMessage(Object payload, int qos, boolean retained) {
-        byte[] body;
-        if (payload instanceof byte[] bytes) {
-            body = bytes;
-        } else {
-            body = String.valueOf(payload).getBytes(StandardCharsets.UTF_8);
+    private static MqttMessage toMessage(byte[] payload, int qos, boolean retained) {
+        if (payload == null) {
+            throw new IllegalArgumentException("payload bytes must not be null");
         }
-        MqttMessage message = new MqttMessage(body);
+        MqttMessage message = new MqttMessage(payload);
         message.setQos(qos);
         message.setRetained(retained);
         return message;

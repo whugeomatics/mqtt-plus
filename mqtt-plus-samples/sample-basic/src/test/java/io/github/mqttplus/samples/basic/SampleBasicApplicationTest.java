@@ -80,20 +80,20 @@ class SampleBasicApplicationTest {
         }
 
         @Override
-        public void publish(String topic, Object payload) {
+        public void publish(String topic, byte[] payload) {
         }
 
         @Override
-        public void publish(String topic, Object payload, int qos, boolean retained) {
+        public void publish(String topic, byte[] payload, int qos, boolean retained) {
         }
 
         @Override
-        public CompletableFuture<Void> publishAsync(String topic, Object payload) {
+        public CompletableFuture<Void> publishAsync(String topic, byte[] payload) {
             return CompletableFuture.completedFuture(null);
         }
 
         @Override
-        public CompletableFuture<Void> publishAsync(String topic, Object payload, int qos, boolean retained) {
+        public CompletableFuture<Void> publishAsync(String topic, byte[] payload, int qos, boolean retained) {
             return CompletableFuture.completedFuture(null);
         }
 

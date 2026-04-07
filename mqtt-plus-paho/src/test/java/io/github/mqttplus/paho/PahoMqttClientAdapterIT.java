@@ -106,7 +106,7 @@ class PahoMqttClientAdapterIT {
         adapter = new PahoMqttClientAdapter(createDefinition("publish-test"), (brokerId, arrivedTopic, payload, headers) -> {
         });
         adapter.connect();
-        adapter.publish(topic, "payload", 1, true);
+        adapter.publish(topic, "payload".getBytes(StandardCharsets.UTF_8), 1, true);
         waitForBrokerProcessing();
 
         try (MqttClient subscriber = newRawClient("subscriber-" + UUID.randomUUID())) {

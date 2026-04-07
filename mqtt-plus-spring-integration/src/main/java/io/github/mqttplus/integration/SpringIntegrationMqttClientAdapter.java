@@ -127,14 +127,17 @@ public final class SpringIntegrationMqttClientAdapter implements MqttClientAdapt
     }
 
     @Override
-    public void publish(String topic, Object payload) {
+    public void publish(String topic, byte[] payload) {
         publish(topic, payload, 0, false);
     }
 
     @Override
-    public void publish(String topic, Object payload, int qos, boolean retained) {
+    public void publish(String topic, byte[] payload, int qos, boolean retained) {
+        if (payload == null) {
+            throw new IllegalArgumentException("payload bytes must not be null");
+        }
         try {
-            outboundHandler.handleMessage(org.springframework.messaging.support.MessageBuilder.withPayload(toPayload(payload))
+            outboundHandler.handleMessage(org.springframework.messaging.support.MessageBuilder.withPayload(payload)
                     .setHeader(org.springframework.integration.mqtt.support.MqttHeaders.TOPIC, topic)
                     .setHeader(org.springframework.integration.mqtt.support.MqttHeaders.QOS, qos)
                     .setHeader(org.springframework.integration.mqtt.support.MqttHeaders.RETAINED, retained)
@@ -146,12 +149,12 @@ public final class SpringIntegrationMqttClientAdapter implements MqttClientAdapt
     }
 
     @Override
-    public CompletableFuture<Void> publishAsync(String topic, Object payload) {
+    public CompletableFuture<Void> publishAsync(String topic, byte[] payload) {
         return publishAsync(topic, payload, 0, false);
     }
 
     @Override
-    public CompletableFuture<Void> publishAsync(String topic, Object payload, int qos, boolean retained) {
+    public CompletableFuture<Void> publishAsync(String topic, byte[] payload, int qos, boolean retained) {
         return CompletableFuture.runAsync(() -> publish(topic, payload, qos, retained));
     }
 
@@ -254,7 +257,10 @@ public final class SpringIntegrationMqttClientAdapter implements MqttClientAdapt
         if (payload instanceof byte[] bytes) {
             return bytes;
         }
-        return String.valueOf(payload).getBytes(StandardCharsets.UTF_8);
+        if (payload instanceof String str) {
+            return str.getBytes(StandardCharsets.UTF_8);
+        }
+        throw new IllegalArgumentException("unsupported inbound payload type: " + payload.getClass().getName());
     }
 
     private void notifyConnected() {

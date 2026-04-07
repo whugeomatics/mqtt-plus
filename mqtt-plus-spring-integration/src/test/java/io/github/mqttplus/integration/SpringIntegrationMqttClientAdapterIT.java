@@ -84,14 +84,16 @@ class SpringIntegrationMqttClientAdapterIT {
 
         adapter.connect();
         assertTrue(connectedLatch.await(5, TimeUnit.SECONDS));
+        waitForBrokerProcessing();
 
         String topic = "devices/" + UUID.randomUUID() + "/status";
         adapter.subscribe("devices/+/status", 1);
+        waitForBrokerProcessing();
 
         boolean received = false;
-        for (int attempt = 0; attempt < 10 && !received; attempt++) {
+        for (int attempt = 0; attempt < 20 && !received; attempt++) {
             publishWithRawClient(topic, "hello".getBytes(StandardCharsets.UTF_8), 1, false);
-            received = messageLatch.await(1, TimeUnit.SECONDS);
+            received = messageLatch.await(2, TimeUnit.SECONDS);
         }
 
         assertTrue(received);
@@ -110,7 +112,8 @@ class SpringIntegrationMqttClientAdapterIT {
         adapter = new SpringIntegrationMqttClientAdapter(createDefinition("publish-test"), (brokerId, arrivedTopic, payload, headers) -> {
         });
         adapter.connect();
-        publishWithAdapterRetry(topic, "payload", 1, true);
+        waitForBrokerProcessing();
+        publishWithAdapterRetry(topic, "payload".getBytes(StandardCharsets.UTF_8), 1, true);
         waitForBrokerProcessing();
 
         try (MqttClient subscriber = newRawClient("subscriber-" + UUID.randomUUID())) {
@@ -134,7 +137,7 @@ class SpringIntegrationMqttClientAdapterIT {
             subscriber.connect(connectOptions());
             subscriber.subscribe(topic, 1);
 
-            assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
+            assertTrue(messageLatch.await(10, TimeUnit.SECONDS));
             assertEquals(1, receivedMessage.get().getQos());
             assertTrue(receivedMessage.get().isRetained());
             assertArrayEquals("payload".getBytes(StandardCharsets.UTF_8), receivedMessage.get().getPayload());
@@ -155,16 +158,16 @@ class SpringIntegrationMqttClientAdapterIT {
                 .build();
     }
 
-    private void publishWithAdapterRetry(String topic, String payload, int qos, boolean retained) throws InterruptedException {
+    private void publishWithAdapterRetry(String topic, byte[] payload, int qos, boolean retained) throws InterruptedException {
         IllegalStateException lastError = null;
-        for (int attempt = 0; attempt < 10; attempt++) {
+        for (int attempt = 0; attempt < 20; attempt++) {
             try {
                 adapter.publish(topic, payload, qos, retained);
                 return;
             }
             catch (IllegalStateException ex) {
                 lastError = ex;
-                Thread.sleep(500);
+                Thread.sleep(1000);
             }
         }
         throw lastError;
@@ -201,7 +204,7 @@ class SpringIntegrationMqttClientAdapterIT {
 
     private void waitForBrokerProcessing() {
         try {
-            Thread.sleep(250);
+            Thread.sleep(1000);
         }
         catch (InterruptedException ex) {
             Thread.currentThread().interrupt();

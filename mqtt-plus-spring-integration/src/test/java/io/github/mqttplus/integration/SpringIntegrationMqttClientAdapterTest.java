@@ -17,12 +17,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class SpringIntegrationMqttClientAdapterTest {
 
@@ -89,7 +87,7 @@ class SpringIntegrationMqttClientAdapterTest {
 
         adapter.connect();
         adapter.subscribe("devices/1/status", 1);
-        adapter.publish("devices/1/status", "payload", 1, true);
+        adapter.publish("devices/1/status", "payload".getBytes(StandardCharsets.UTF_8), 1, true);
         adapter.unsubscribe("devices/1/status");
         adapter.disconnect();
 
@@ -101,7 +99,6 @@ class SpringIntegrationMqttClientAdapterTest {
         verify(outboundHandler).stop();
         assertEquals("primary", connectedBroker.get());
         assertEquals("primary", disconnectedBroker.get());
-
         verify(outboundHandler, times(1)).handleMessage(any(Message.class));
     }
 
