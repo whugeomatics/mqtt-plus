@@ -196,6 +196,8 @@ All three samples are covered by smoke tests in CI.
 - `MqttTemplate` requires an explicit broker id for publishing
 - `MqttTestTemplate.simulateIncoming(...)` is a fast router-level testing utility, not a full protocol simulator
 - Runtime broker connection reconfiguration is outside the current scope
+- Multiple listeners can match the same topic and will all be invoked
+- Listener invocation still depends on payload conversion: a String listener can consume plain text, while a typed listener such as DroneStatus requires payload bytes that can be deserialized into that target type (for example JSON when using Jackson)
 
 ### Requirements
 
